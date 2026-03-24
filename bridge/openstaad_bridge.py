@@ -221,12 +221,117 @@ class OpenSTAADBridge:
             })
         return {"beamId": beam_id, "loadCase": load_case, "forces": sections}
 
+    # ── Write: Geometry ─────────────────────────────────────────────
+
+    def create_node(self, x: float, y: float, z: float) -> dict:
+        self._require_connection()
+        geo = self._geometry
+        node_id = geo.CreateNode(x, y, z)
+        return {"nodeId": node_id, "x": x, "y": y, "z": z}
+
+    def delete_node(self, node_id: int) -> dict:
+        self._require_connection()
+        geo = self._geometry
+        geo.DeleteNode(node_id)
+        return {"deleted": True, "nodeId": node_id}
+
+    def create_member(self, start_node: int, end_node: int) -> dict:
+        self._require_connection()
+        geo = self._geometry
+        member_id = geo.CreateMember(start_node, end_node)
+        return {"memberId": member_id, "startNode": start_node, "endNode": end_node}
+
+    def delete_member(self, member_id: int) -> dict:
+        self._require_connection()
+        geo = self._geometry
+        geo.DeleteMember(member_id)
+        return {"deleted": True, "memberId": member_id}
+
+    # ── Write: Properties ────────────────────────────────────────
+
+    def assign_member_property(self, member_id: int, section_name: str) -> dict:
+        self._require_connection()
+        prop = self._property
+        prop.AssignMemberSection(member_id, section_name)
+        return {"memberId": member_id, "sectionName": section_name}
+
+    # ── Write: Supports ──────────────────────────────────────────
+
+    def add_support(self, node_id: int, support_type: str) -> dict:
+        """Add a support to a node. support_type: 'fixed', 'pinned', or custom DOF string like '111111'."""
+        self._require_connection()
+        sup = self._support
+        type_map = {
+            "fixed": "FIXED",
+            "pinned": "PINNED",
+        }
+        sup_type = type_map.get(support_type.lower(), support_type.upper())
+        sup.AssignSupportToNode(node_id, sup_type)
+        return {"nodeId": node_id, "supportType": sup_type}
+
+    def remove_support(self, node_id: int) -> dict:
+        self._require_connection()
+        sup = self._support
+        sup.RemoveSupportFromNode(node_id)
+        return {"removed": True, "nodeId": node_id}
+
+    # ── Write: Loads ─────────────────────────────────────────────
+
+    def create_load_case(self, title: str) -> dict:
+        self._require_connection()
+        load = self._load
+        lc_id = load.CreateLoadCase(title)
+        return {"loadCaseId": lc_id, "title": title}
+
+    def delete_load_case(self, load_case_id: int) -> dict:
+        self._require_connection()
+        load = self._load
+        load.DeleteLoadCase(load_case_id)
+        return {"deleted": True, "loadCaseId": load_case_id}
+
+    def add_node_load(self, node_id: int, load_case: int,
+                      fx: float = 0, fy: float = 0, fz: float = 0,
+                      mx: float = 0, my: float = 0, mz: float = 0) -> dict:
+        self._require_connection()
+        load = self._load
+        load.AddNodeLoad(node_id, load_case, fx, fy, fz, mx, my, mz)
+        return {
+            "nodeId": node_id, "loadCase": load_case,
+            "fx": fx, "fy": fy, "fz": fz,
+            "mx": mx, "my": my, "mz": mz,
+        }
+
+    def add_member_load(self, member_id: int, load_case: int, load_type: str,
+                        direction: str, w1: float, w2: float = 0,
+                        d1: float = 0, d2: float = 0) -> dict:
+        """Add a distributed or concentrated load to a member.
+        load_type: 'uniform', 'concentrated', 'trapezoidal'
+        direction: 'GX', 'GY', 'GZ', 'X', 'Y', 'Z'
+        """
+        self._require_connection()
+        load = self._load
+        load.AddMemberLoad(member_id, load_case, load_type.upper(),
+                          direction.upper(), w1, w2, d1, d2)
+        return {
+            "memberId": member_id, "loadCase": load_case,
+            "loadType": load_type, "direction": direction,
+            "w1": w1, "w2": w2, "d1": d1, "d2": d2,
+        }
+
+    # ── Analysis ─────────────────────────────────────────────────
+
+    def run_analysis(self) -> dict:
+        self._require_connection()
+        self._openstaad.Analyze()
+        return {"status": "analysis_complete"}
+
     # ── Dispatch ──────────────────────────────────────────────────
 
     def dispatch(self, method: str, params: dict | None = None) -> Any:
         """Route a JSON-RPC style method to the appropriate handler."""
         params = params or {}
         handlers = {
+            # Read operations
             "connect": self.connect,
             "disconnect": self.disconnect,
             "getProjectInfo": self.get_project_info,
@@ -238,6 +343,19 @@ class OpenSTAADBridge:
             "getNodeDisplacements": lambda: self.get_node_displacements(**params),
             "getSupportReactions": lambda: self.get_support_reactions(**params),
             "getMemberForces": lambda: self.get_member_forces(**params),
+            # Write operations
+            "createNode": lambda: self.create_node(**params),
+            "deleteNode": lambda: self.delete_node(**params),
+            "createMember": lambda: self.create_member(**params),
+            "deleteMember": lambda: self.delete_member(**params),
+            "assignMemberProperty": lambda: self.assign_member_property(**params),
+            "addSupport": lambda: self.add_support(**params),
+            "removeSupport": lambda: self.remove_support(**params),
+            "createLoadCase": lambda: self.create_load_case(**params),
+            "deleteLoadCase": lambda: self.delete_load_case(**params),
+            "addNodeLoad": lambda: self.add_node_load(**params),
+            "addMemberLoad": lambda: self.add_member_load(**params),
+            "runAnalysis": self.run_analysis,
         }
         handler = handlers.get(method)
         if not handler:
