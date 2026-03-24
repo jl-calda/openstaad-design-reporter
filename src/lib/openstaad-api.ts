@@ -106,6 +106,66 @@ export interface MemberForcesResult {
   forces: MemberEndForce[];
 }
 
+// ── Write Result Types ───────────────────────────────────────────
+
+export interface CreateNodeResult {
+  nodeId: number;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface DeleteResult {
+  deleted: boolean;
+}
+
+export interface CreateMemberResult {
+  memberId: number;
+  startNode: number;
+  endNode: number;
+}
+
+export interface AssignPropertyResult {
+  memberId: number;
+  sectionName: string;
+}
+
+export interface SupportResult {
+  nodeId: number;
+  supportType: string;
+}
+
+export interface CreateLoadCaseResult {
+  loadCaseId: number;
+  title: string;
+}
+
+export interface NodeLoadResult {
+  nodeId: number;
+  loadCase: number;
+  fx: number;
+  fy: number;
+  fz: number;
+  mx: number;
+  my: number;
+  mz: number;
+}
+
+export interface MemberLoadResult {
+  memberId: number;
+  loadCase: number;
+  loadType: string;
+  direction: string;
+  w1: number;
+  w2: number;
+  d1: number;
+  d2: number;
+}
+
+export interface AnalysisResult {
+  status: string;
+}
+
 // ── API Class ────────────────────────────────────────────────────
 
 export class OpenSTAADApi {
@@ -114,6 +174,8 @@ export class OpenSTAADApi {
     this.client = client;
   }
 
+  // ── Connection ──────────────────────────────────────────────
+
   connect() {
     return this.client.request<{ status: string }>("connect");
   }
@@ -121,6 +183,8 @@ export class OpenSTAADApi {
   disconnect() {
     return this.client.request<{ status: string }>("disconnect");
   }
+
+  // ── Read Operations ─────────────────────────────────────────
 
   getProjectInfo() {
     return this.client.request<ProjectInfo>("getProjectInfo");
@@ -156,5 +220,63 @@ export class OpenSTAADApi {
 
   getMemberForces(beamId: number, loadCase: number) {
     return this.client.request<MemberForcesResult>("getMemberForces", { beamId, loadCase });
+  }
+
+  // ── Write: Geometry ─────────────────────────────────────────
+
+  createNode(x: number, y: number, z: number) {
+    return this.client.request<CreateNodeResult>("createNode", { x, y, z });
+  }
+
+  deleteNode(nodeId: number) {
+    return this.client.request<DeleteResult>("deleteNode", { nodeId });
+  }
+
+  createMember(startNode: number, endNode: number) {
+    return this.client.request<CreateMemberResult>("createMember", { startNode, endNode });
+  }
+
+  deleteMember(memberId: number) {
+    return this.client.request<DeleteResult>("deleteMember", { memberId });
+  }
+
+  // ── Write: Properties ───────────────────────────────────────
+
+  assignMemberProperty(memberId: number, sectionName: string) {
+    return this.client.request<AssignPropertyResult>("assignMemberProperty", { memberId, sectionName });
+  }
+
+  // ── Write: Supports ─────────────────────────────────────────
+
+  addSupport(nodeId: number, supportType: string) {
+    return this.client.request<SupportResult>("addSupport", { nodeId, supportType });
+  }
+
+  removeSupport(nodeId: number) {
+    return this.client.request<DeleteResult>("removeSupport", { nodeId });
+  }
+
+  // ── Write: Loads ────────────────────────────────────────────
+
+  createLoadCase(title: string) {
+    return this.client.request<CreateLoadCaseResult>("createLoadCase", { title });
+  }
+
+  deleteLoadCase(loadCaseId: number) {
+    return this.client.request<DeleteResult>("deleteLoadCase", { loadCaseId });
+  }
+
+  addNodeLoad(nodeId: number, loadCase: number, forces: { fx?: number; fy?: number; fz?: number; mx?: number; my?: number; mz?: number }) {
+    return this.client.request<NodeLoadResult>("addNodeLoad", { nodeId, loadCase, ...forces });
+  }
+
+  addMemberLoad(memberId: number, loadCase: number, loadType: string, direction: string, w1: number, w2?: number, d1?: number, d2?: number) {
+    return this.client.request<MemberLoadResult>("addMemberLoad", { memberId, loadCase, loadType, direction, w1, w2: w2 ?? 0, d1: d1 ?? 0, d2: d2 ?? 0 });
+  }
+
+  // ── Analysis ────────────────────────────────────────────────
+
+  runAnalysis() {
+    return this.client.request<AnalysisResult>("runAnalysis");
   }
 }

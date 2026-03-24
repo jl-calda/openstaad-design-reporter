@@ -5,6 +5,7 @@ import { ProjectInfoCard } from "./components/ProjectInfoCard";
 import { StatsBar } from "./components/StatsBar";
 import { DataTable } from "./components/DataTable";
 import { ResultsPanel } from "./components/ResultsPanel";
+import { ModelEditor } from "./components/ModelEditor";
 import type {
   ProjectInfo,
   NodesResult,
@@ -56,6 +57,23 @@ function App() {
     setLoadCases(null);
     setSupports(null);
   }, [disconnectBridge]);
+
+  const refreshModelData = useCallback(async () => {
+    try {
+      const [n, b, lc, s] = await Promise.all([
+        api.getNodes(),
+        api.getBeams(),
+        api.getLoadCases(),
+        api.getSupports(),
+      ]);
+      setNodes(n);
+      setBeams(b);
+      setLoadCases(lc);
+      setSupports(s);
+    } catch (e) {
+      console.error("Failed to refresh model data:", e);
+    }
+  }, [api]);
 
   const isConnected = status === "connected" && projectInfo !== null;
 
@@ -188,6 +206,18 @@ function App() {
               rows={loadCases?.cases ?? []}
               emptyMessage="No load cases"
             />
+
+            {/* Model Editor */}
+            {nodes && beams && loadCases && supports && (
+              <ModelEditor
+                api={api}
+                nodes={nodes.nodes}
+                beams={beams.beams}
+                loadCases={loadCases.cases}
+                supportNodeIds={supports.supports.map((s) => s.nodeId)}
+                onModelChanged={refreshModelData}
+              />
+            )}
 
             {/* Analysis Results */}
             {loadCases && loadCases.cases.length > 0 && (
