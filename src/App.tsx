@@ -6,6 +6,7 @@ import { StatsBar } from "./components/StatsBar";
 import { DataTable } from "./components/DataTable";
 import { ResultsPanel } from "./components/ResultsPanel";
 import { ModelEditor } from "./components/ModelEditor";
+import { AIModelGenerator } from "./components/AIModelGenerator";
 import type {
   ProjectInfo,
   NodesResult,
@@ -206,6 +207,9 @@ function App() {
               rows={loadCases?.cases ?? []}
               emptyMessage="No load cases"
             />
+
+            {/* AI Model Generator */}
+            <AIModelGenerator api={api} onModelGenerated={refreshModelData} />
 
             {/* Model Editor */}
             {nodes && beams && loadCases && supports && (
