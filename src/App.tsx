@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useBridge } from "./hooks/useBridge";
 import { ConnectionPanel } from "./components/ConnectionPanel";
+import { CalculationReport } from "./components/CalculationReport";
 import { ProjectInfoCard } from "./components/ProjectInfoCard";
 import { StatsBar } from "./components/StatsBar";
 import { DataTable } from "./components/DataTable";
@@ -15,6 +16,8 @@ import type {
   SupportsResult,
 } from "./lib/openstaad-api";
 
+type Tab = "report" | "editor";
+
 function App() {
   const { status, error, api, connectBridge, connectSTAAD, disconnectBridge } =
     useBridge();
@@ -25,10 +28,10 @@ function App() {
   const [loadCases, setLoadCases] = useState<LoadCasesResult | null>(null);
   const [supports, setSupports] = useState<SupportsResult | null>(null);
   const [loadingData, setLoadingData] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("report");
 
   const handleConnectSTAAD = useCallback(async () => {
     await connectSTAAD();
-    // Fetch all model data after connecting to STAAD
     setLoadingData(true);
     try {
       const [pi, n, b, lc, s] = await Promise.all([
@@ -81,46 +84,66 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">
+                  OpenSTAAD Design Reporter
+                </h1>
+                <p className="text-xs text-gray-500">
+                  Structural analysis data from STAAD.Pro via WebSocket bridge
+                </p>
+              </div>
+            </div>
+
+            {/* Tab navigation */}
+            {isConnected && (
+              <nav className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                <TabButton
+                  label="Report"
+                  active={activeTab === "report"}
+                  onClick={() => setActiveTab("report")}
                 />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">
-                OpenSTAAD Design Reporter
-              </h1>
-              <p className="text-xs text-gray-500">
-                Structural analysis data from STAAD.Pro via WebSocket bridge
-              </p>
-            </div>
+                <TabButton
+                  label="Editor"
+                  active={activeTab === "editor"}
+                  onClick={() => setActiveTab("editor")}
+                />
+              </nav>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Connection */}
-        <ConnectionPanel
-          status={status}
-          error={error}
-          onConnectBridge={connectBridge}
-          onConnectSTAAD={handleConnectSTAAD}
-          onDisconnect={handleDisconnect}
-        />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 print:px-0 print:py-0 print:max-w-none">
+        {/* Connection (hidden in print) */}
+        <div className="print:hidden">
+          <ConnectionPanel
+            status={status}
+            error={error}
+            onConnectBridge={connectBridge}
+            onConnectSTAAD={handleConnectSTAAD}
+            onDisconnect={handleDisconnect}
+          />
+        </div>
 
         {loadingData && (
           <div className="flex items-center justify-center py-12">
@@ -151,81 +174,98 @@ function App() {
 
         {isConnected && !loadingData && (
           <>
-            {/* Project Info */}
-            <ProjectInfoCard info={projectInfo} />
-
-            {/* Stats */}
-            <StatsBar
-              stats={[
-                { label: "Nodes", value: nodes?.count ?? 0, icon: "\u25CF" },
-                { label: "Members", value: beams?.count ?? 0, icon: "\u2500" },
-                {
-                  label: "Load Cases",
-                  value: loadCases?.count ?? 0,
-                  icon: "\u2193",
-                },
-                {
-                  label: "Supports",
-                  value: supports?.count ?? 0,
-                  icon: "\u25B2",
-                },
-              ]}
-            />
-
-            {/* Geometry Tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DataTable
-                title="Nodes"
-                columns={[
-                  { key: "id", label: "ID" },
-                  { key: "x", label: "X" },
-                  { key: "y", label: "Y" },
-                  { key: "z", label: "Z" },
-                ]}
-                rows={nodes?.nodes ?? []}
-                emptyMessage="No nodes loaded"
-              />
-              <DataTable
-                title="Members"
-                columns={[
-                  { key: "id", label: "ID" },
-                  { key: "startNode", label: "Start Node" },
-                  { key: "endNode", label: "End Node" },
-                ]}
-                rows={beams?.beams ?? []}
-                emptyMessage="No members loaded"
-              />
-            </div>
-
-            {/* Load Cases */}
-            <DataTable
-              title="Load Cases"
-              columns={[
-                { key: "id", label: "ID" },
-                { key: "title", label: "Title" },
-              ]}
-              rows={loadCases?.cases ?? []}
-              emptyMessage="No load cases"
-            />
-
-            {/* AI Model Generator */}
-            <AIModelGenerator api={api} onModelGenerated={refreshModelData} />
-
-            {/* Model Editor */}
-            {nodes && beams && loadCases && supports && (
-              <ModelEditor
+            {/* ── Report Tab ── */}
+            {activeTab === "report" && nodes && beams && loadCases && supports && (
+              <CalculationReport
                 api={api}
+                projectInfo={projectInfo}
                 nodes={nodes.nodes}
                 beams={beams.beams}
                 loadCases={loadCases.cases}
-                supportNodeIds={supports.supports.map((s) => s.nodeId)}
-                onModelChanged={refreshModelData}
+                supports={supports.supports}
               />
             )}
 
-            {/* Analysis Results */}
-            {loadCases && loadCases.cases.length > 0 && (
-              <ResultsPanel api={api} loadCases={loadCases.cases} />
+            {/* ── Editor Tab ── */}
+            {activeTab === "editor" && (
+              <>
+                {/* Project Info */}
+                <ProjectInfoCard info={projectInfo} />
+
+                {/* Stats */}
+                <StatsBar
+                  stats={[
+                    { label: "Nodes", value: nodes?.count ?? 0, icon: "\u25CF" },
+                    { label: "Members", value: beams?.count ?? 0, icon: "\u2500" },
+                    {
+                      label: "Load Cases",
+                      value: loadCases?.count ?? 0,
+                      icon: "\u2193",
+                    },
+                    {
+                      label: "Supports",
+                      value: supports?.count ?? 0,
+                      icon: "\u25B2",
+                    },
+                  ]}
+                />
+
+                {/* Geometry Tables */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DataTable
+                    title="Nodes"
+                    columns={[
+                      { key: "id", label: "ID" },
+                      { key: "x", label: "X" },
+                      { key: "y", label: "Y" },
+                      { key: "z", label: "Z" },
+                    ]}
+                    rows={nodes?.nodes ?? []}
+                    emptyMessage="No nodes loaded"
+                  />
+                  <DataTable
+                    title="Members"
+                    columns={[
+                      { key: "id", label: "ID" },
+                      { key: "startNode", label: "Start Node" },
+                      { key: "endNode", label: "End Node" },
+                    ]}
+                    rows={beams?.beams ?? []}
+                    emptyMessage="No members loaded"
+                  />
+                </div>
+
+                {/* Load Cases */}
+                <DataTable
+                  title="Load Cases"
+                  columns={[
+                    { key: "id", label: "ID" },
+                    { key: "title", label: "Title" },
+                  ]}
+                  rows={loadCases?.cases ?? []}
+                  emptyMessage="No load cases"
+                />
+
+                {/* AI Model Generator */}
+                <AIModelGenerator api={api} onModelGenerated={refreshModelData} />
+
+                {/* Model Editor */}
+                {nodes && beams && loadCases && supports && (
+                  <ModelEditor
+                    api={api}
+                    nodes={nodes.nodes}
+                    beams={beams.beams}
+                    loadCases={loadCases.cases}
+                    supportNodeIds={supports.supports.map((s) => s.nodeId)}
+                    onModelChanged={refreshModelData}
+                  />
+                )}
+
+                {/* Analysis Results */}
+                {loadCases && loadCases.cases.length > 0 && (
+                  <ResultsPanel api={api} loadCases={loadCases.cases} />
+                )}
+              </>
             )}
           </>
         )}
@@ -259,6 +299,21 @@ function App() {
         )}
       </main>
     </div>
+  );
+}
+
+function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+        active
+          ? "bg-white text-gray-900 shadow-sm"
+          : "text-gray-600 hover:text-gray-900"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

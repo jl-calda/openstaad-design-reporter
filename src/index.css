@@ -18,3 +18,37 @@ body {
   background: #cbd5e1;
   border-radius: 3px;
 }
+
+/* ── Print styles for Calculation Report ── */
+@media print {
+  body {
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    margin: 15mm 12mm;
+    size: A4;
+  }
+
+  .calc-report {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Avoid breaking inside table rows and summary boxes */
+  tr, .max-summary {
+    break-inside: avoid;
+  }
+
+  /* Keep section headers with content */
+  h2, h3 {
+    break-after: avoid;
+  }
+
+  table {
+    font-size: 9pt;
+  }
+}
