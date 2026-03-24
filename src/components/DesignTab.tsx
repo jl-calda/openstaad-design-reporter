@@ -4,10 +4,12 @@
  * Each presents as a calculation report with input parameters and design checks.
  */
 
+"use client";
+
 import { useState, useRef, useCallback } from "react";
-import { AIClient, DEFAULT_AI_CONFIG } from "../lib/ai-client";
-import type { AIClientConfig } from "../lib/ai-client";
-import type { OpenSTAADApi, Beam, Node, LoadCase } from "../lib/openstaad-api";
+import { AIClient, DEFAULT_AI_CONFIG } from "@/lib/ai-client";
+import type { AIClientConfig } from "@/lib/ai-client";
+import type { OpenSTAADApi, Beam, Node, LoadCase } from "@/lib/openstaad-api";
 
 // ── Types ───────────────────────────────────────────────────────
 

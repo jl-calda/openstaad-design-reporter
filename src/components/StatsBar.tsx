@@ -1,3 +1,5 @@
+"use client";
+
 interface Stat {
   label: string;
   value: string | number;

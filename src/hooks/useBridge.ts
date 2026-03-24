@@ -1,7 +1,9 @@
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
-import { BridgeClient } from "../lib/bridge-client";
-import type { BridgeStatus } from "../lib/bridge-client";
-import { OpenSTAADApi } from "../lib/openstaad-api";
+import { BridgeClient } from "@/lib/bridge-client";
+import type { BridgeStatus } from "@/lib/bridge-client";
+import { OpenSTAADApi } from "@/lib/openstaad-api";
 
 const DEFAULT_URL = "ws://localhost:8765";
 

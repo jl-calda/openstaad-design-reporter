@@ -1,3 +1,5 @@
+"use client";
+
 interface Props<T> {
   title: string;
   columns: { key: string; label: string }[];

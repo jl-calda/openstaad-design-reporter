@@ -1,16 +1,18 @@
+"use client";
+
 import { useState, useCallback } from "react";
-import { useBridge } from "./hooks/useBridge";
-import { ConnectionPanel } from "./components/ConnectionPanel";
-import { AIModelGenerator } from "./components/AIModelGenerator";
-import { LoadingTab } from "./components/LoadingTab";
-import { DesignTab } from "./components/DesignTab";
+import { useBridge } from "@/hooks/useBridge";
+import { ConnectionPanel } from "@/components/ConnectionPanel";
+import { AIModelGenerator } from "@/components/AIModelGenerator";
+import { LoadingTab } from "@/components/LoadingTab";
+import { DesignTab } from "@/components/DesignTab";
 import type {
   ProjectInfo,
   NodesResult,
   BeamsResult,
   LoadCasesResult,
   SupportsResult,
-} from "./lib/openstaad-api";
+} from "@/lib/openstaad-api";
 
 type Tab = "ai" | "loading" | "beam" | "column" | "slab" | "footing";
 

@@ -1,4 +1,6 @@
-import type { ProjectInfo } from "../lib/openstaad-api";
+"use client";
+
+import type { ProjectInfo } from "@/lib/openstaad-api";
 
 interface Props {
   info: ProjectInfo | null;

@@ -1,7 +1,9 @@
+"use client";
+
 import { useState } from "react";
-import { OpenSTAADApi } from "../lib/openstaad-api";
-import type { LoadCase, DisplacementsResult, ReactionsResult } from "../lib/openstaad-api";
-import { DataTable } from "./DataTable";
+import { OpenSTAADApi } from "@/lib/openstaad-api";
+import type { LoadCase, DisplacementsResult, ReactionsResult } from "@/lib/openstaad-api";
+import { DataTable } from "@/components/DataTable";
 
 interface Props {
   api: OpenSTAADApi;

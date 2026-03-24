@@ -14,6 +14,8 @@
  * Designed for print: clean typography, page breaks, no UI chrome.
  */
 
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import type {
   OpenSTAADApi,
@@ -26,7 +28,7 @@ import type {
   NodeDisplacement,
   SupportReaction,
   MemberForcesResult,
-} from "../lib/openstaad-api";
+} from "@/lib/openstaad-api";
 
 interface Props {
   api: OpenSTAADApi;
@@ -562,7 +564,8 @@ function fmtSci(v: number): string {
   return v.toFixed(6);
 }
 
-function maxAbs<T extends Record<string, number>>(arr: T[], key: string): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function maxAbs(arr: any[], key: string): number {
   let max = 0;
   for (const item of arr) {
     const val = Math.abs(item[key] ?? 0);
@@ -571,7 +574,8 @@ function maxAbs<T extends Record<string, number>>(arr: T[], key: string): number
   return max;
 }
 
-function maxAbsNode<T extends Record<string, number>>(arr: T[], key: string): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function maxAbsNode(arr: any[], key: string): number {
   let max = 0;
   let nodeId = 0;
   for (const item of arr) {
