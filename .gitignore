@@ -30,3 +30,4 @@ bridge/venv/
 node_modules/
 .next/
 out/
+tsconfig.tsbuildinfo
