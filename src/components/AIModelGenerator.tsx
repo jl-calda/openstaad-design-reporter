@@ -1,9 +1,11 @@
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
-import { AIClient, DEFAULT_AI_CONFIG } from "../lib/ai-client";
-import type { AIClientConfig } from "../lib/ai-client";
-import { generateModel, applyModelToSTAAD } from "../lib/model-generator";
-import type { GenerationStep, GeneratedModel } from "../lib/model-generator";
-import type { OpenSTAADApi } from "../lib/openstaad-api";
+import { AIClient, DEFAULT_AI_CONFIG } from "@/lib/ai-client";
+import type { AIClientConfig } from "@/lib/ai-client";
+import { generateModel, applyModelToSTAAD } from "@/lib/model-generator";
+import type { GenerationStep, GeneratedModel } from "@/lib/model-generator";
+import type { OpenSTAADApi } from "@/lib/openstaad-api";
 
 interface Props {
   api: OpenSTAADApi;

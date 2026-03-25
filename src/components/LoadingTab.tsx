@@ -3,8 +3,10 @@
  * Define load cases and load combinations with a calculation-style presentation.
  */
 
+"use client";
+
 import { useState, useCallback } from "react";
-import type { OpenSTAADApi, LoadCase } from "../lib/openstaad-api";
+import type { OpenSTAADApi, LoadCase } from "@/lib/openstaad-api";
 
 interface Props {
   api: OpenSTAADApi;

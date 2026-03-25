@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import type { BridgeStatus } from "../lib/bridge-client";
+import type { BridgeStatus } from "@/lib/bridge-client";
 
 interface Props {
   status: BridgeStatus;

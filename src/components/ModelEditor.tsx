@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import type { OpenSTAADApi, Node, Beam, LoadCase } from "../lib/openstaad-api";
+import type { OpenSTAADApi, Node, Beam, LoadCase } from "@/lib/openstaad-api";
 
 type EditorTab =
   | "nodes"
