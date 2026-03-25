@@ -9,7 +9,7 @@
 import { useState, useRef, useCallback } from "react";
 import { AIClient, DEFAULT_AI_CONFIG } from "@/lib/ai-client";
 import type { AIClientConfig } from "@/lib/ai-client";
-import type { OpenSTAADApi, Beam, Node, LoadCase } from "@/lib/openstaad-api";
+import type { OpenSTAADApi, Beam, LoadCase } from "@/lib/openstaad-api";
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -18,7 +18,6 @@ export type DesignType = "beam" | "column" | "slab" | "footing";
 interface Props {
   type: DesignType;
   api: OpenSTAADApi;
-  nodes: Node[];
   beams: Beam[];
   loadCases: LoadCase[];
 }
@@ -92,7 +91,7 @@ const DEFAULT_INPUTS: Record<DesignType, Partial<DesignInput>> = {
 
 // ── Component ───────────────────────────────────────────────────
 
-export function DesignTab({ type, api, nodes, beams, loadCases }: Props) {
+export function DesignTab({ type, api, beams, loadCases }: Props) {
   const config = TYPE_CONFIG[type];
   const aiRef = useRef<AIClient>(new AIClient());
   const [aiConfig, setAiConfig] = useState<AIClientConfig>(DEFAULT_AI_CONFIG);

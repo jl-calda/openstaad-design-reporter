@@ -88,6 +88,9 @@ function App() {
 
   const isConnected = status === "connected" && projectInfo !== null;
 
+  // Tabs that require STAAD connection for data
+  const needsConnection = (tab: Tab) => tab === "ai" || tab === "loading";
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -120,26 +123,27 @@ function App() {
           </div>
         </div>
 
-        {/* Tab bar */}
-        {isConnected && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <nav className="flex gap-0 border-t border-gray-100 -mb-px overflow-x-auto">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? "border-gray-900 text-gray-900"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        )}
+        {/* Tab bar — always visible */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <nav className="flex gap-0 border-t border-gray-100 -mb-px overflow-x-auto">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                {tab.label}
+                {!isConnected && needsConnection(tab.id) && (
+                  <span className="ml-1.5 text-[10px] text-gray-400" title="Requires STAAD connection">*</span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -169,84 +173,84 @@ function App() {
         )}
 
         {/* Tab content */}
-        {isConnected && !loadingData && (
+        {!loadingData && (
           <>
-            {/* Tab 1: AI Builder */}
-            {activeTab === "ai" && (
+            {/* Tab 1: AI Builder — requires connection */}
+            {activeTab === "ai" && isConnected && (
               <AIModelGenerator api={api} onModelGenerated={refreshModelData} />
             )}
+            {activeTab === "ai" && !isConnected && (
+              <OfflineNotice tab="AI Builder" message="Connect to STAAD.Pro to generate and apply structural models." />
+            )}
 
-            {/* Tab 2: Loading */}
-            {activeTab === "loading" && loadCases && (
+            {/* Tab 2: Loading — requires connection for data */}
+            {activeTab === "loading" && isConnected && loadCases && (
               <LoadingTab
                 api={api}
                 loadCases={loadCases.cases}
                 onDataChanged={refreshModelData}
               />
             )}
+            {activeTab === "loading" && !isConnected && (
+              <OfflineNotice tab="Loading" message="Connect to STAAD.Pro to view and define load cases and combinations." />
+            )}
 
-            {/* Tab 3: Beam Design */}
-            {activeTab === "beam" && nodes && beams && loadCases && (
+            {/* Tab 3: Beam Design — works offline with manual input */}
+            {activeTab === "beam" && (
               <DesignTab
                 type="beam"
                 api={api}
-                nodes={nodes.nodes}
-                beams={beams.beams}
-                loadCases={loadCases.cases}
+                beams={beams?.beams ?? []}
+                loadCases={loadCases?.cases ?? []}
               />
             )}
 
             {/* Tab 4: Column Design */}
-            {activeTab === "column" && nodes && beams && loadCases && (
+            {activeTab === "column" && (
               <DesignTab
                 type="column"
                 api={api}
-                nodes={nodes.nodes}
-                beams={beams.beams}
-                loadCases={loadCases.cases}
+                beams={beams?.beams ?? []}
+                loadCases={loadCases?.cases ?? []}
               />
             )}
 
             {/* Tab 5: Slab Design */}
-            {activeTab === "slab" && nodes && beams && loadCases && (
+            {activeTab === "slab" && (
               <DesignTab
                 type="slab"
                 api={api}
-                nodes={nodes.nodes}
-                beams={beams.beams}
-                loadCases={loadCases.cases}
+                beams={beams?.beams ?? []}
+                loadCases={loadCases?.cases ?? []}
               />
             )}
 
             {/* Tab 6: Footing Design */}
-            {activeTab === "footing" && nodes && beams && loadCases && (
+            {activeTab === "footing" && (
               <DesignTab
                 type="footing"
                 api={api}
-                nodes={nodes.nodes}
-                beams={beams.beams}
-                loadCases={loadCases.cases}
+                beams={beams?.beams ?? []}
+                loadCases={loadCases?.cases ?? []}
               />
             )}
           </>
         )}
-
-        {/* Empty state */}
-        {!isConnected && !loadingData && (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Connect to STAAD.Pro</h3>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Start the OpenSTAAD bridge server on your Windows machine, then
-              click Connect to begin designing.
-            </p>
-          </div>
-        )}
       </main>
+    </div>
+  );
+}
+
+function OfflineNotice({ tab, message }: { tab: string; message: string }) {
+  return (
+    <div className="text-center py-16">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+        <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">{tab} requires STAAD connection</h3>
+      <p className="text-sm text-gray-500 max-w-md mx-auto">{message}</p>
     </div>
   );
 }
